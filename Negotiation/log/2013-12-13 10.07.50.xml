@@ -1,0 +1,19 @@
+<a>
+<NegotiationOutcome currentTime="2013-12-13 10:07:51" timeOfAgreement="2.3780475555555555E-4" bids="1" domain="etc/templates/anac/y2011/Car/adg.xml" lastAction="(Accept)" runNumber="0" errors="" startingAgent="A"> 
+<resultsOfAgent agent="A" agentName="Bayesian Agent" agentClass="agents.BayesianAgent" utilspace="etc/templates/anac/y2011/Car/adg_deal.xml" Opponent-agentName="Gahboninho V3" Opponent-agentClass="agents.anac.y2011.Gahboninho.Gahboninho" Opponent-utilspace="etc/templates/anac/y2011/Car/adg_deal.xml" finalUtility="1.0" discountedUtility="1.0" bestAcceptableBid="0.0" bestDiscountedAccepableBid="0.0" maxUtility="1.0" normalizedUtility="1.0" AcceptedBy="agentB"> 
+</resultsOfAgent> 
+<resultsOfAgent agent="B" agentName="Gahboninho V3" agentClass="agents.anac.y2011.Gahboninho.Gahboninho" utilspace="etc/templates/anac/y2011/Car/adg_deal.xml" Opponent-agentName="Bayesian Agent" Opponent-agentClass="agents.BayesianAgent" Opponent-utilspace="etc/templates/anac/y2011/Car/adg_deal.xml" finalUtility="1.0" discountedUtility="1.0" bestAcceptableBid="1.0" bestDiscountedAccepableBid="5.1890394444444446E-5" maxUtility="1.0" normalizedUtility="1.0" AcceptedBy="agentB"> 
+</resultsOfAgent> 
+</NegotiationOutcome> 
+<NegotiationOutcome currentTime="2013-12-13 10:08:50" timeOfAgreement="4.748151888888889E-4" bids="1" domain="etc/templates/anac/y2011/Car/adg.xml" lastAction="(Accept)" runNumber="0" errors="" startingAgent="A"> 
+<resultsOfAgent agent="A" agentName="HardHeaded" agentClass="agents.anac.y2011.HardHeaded.KLH" utilspace="etc/templates/anac/y2011/Car/adg_deal.xml" Opponent-agentName="Gahboninho V3" Opponent-agentClass="agents.anac.y2011.Gahboninho.Gahboninho" Opponent-utilspace="etc/templates/anac/y2011/Car/adg_deal.xml" finalUtility="1.0" discountedUtility="1.0" bestAcceptableBid="0.0" bestDiscountedAccepableBid="0.0" maxUtility="1.0" normalizedUtility="1.0" AcceptedBy="agentB"> 
+</resultsOfAgent> 
+<resultsOfAgent agent="B" agentName="Gahboninho V3" agentClass="agents.anac.y2011.Gahboninho.Gahboninho" utilspace="etc/templates/anac/y2011/Car/adg_deal.xml" Opponent-agentName="HardHeaded" Opponent-agentClass="agents.anac.y2011.HardHeaded.KLH" Opponent-utilspace="etc/templates/anac/y2011/Car/adg_deal.xml" finalUtility="1.0" discountedUtility="1.0" bestAcceptableBid="1.0" bestDiscountedAccepableBid="4.6911534444444447E-4" maxUtility="1.0" normalizedUtility="1.0" AcceptedBy="agentB"> 
+</resultsOfAgent> 
+</NegotiationOutcome> 
+<NegotiationOutcome currentTime="2013-12-13 10:12:52" timeOfAgreement="0.9096992095277778" bids="15879" domain="etc/templates/anac/y2011/Amsterdam/Amsterdam_domain.xml" lastAction="(Accept)" runNumber="0" errors="" startingAgent="A"> 
+<resultsOfAgent agent="A" agentName="HardHeaded" agentClass="agents.anac.y2011.HardHeaded.KLH" utilspace="etc/templates/anac/y2011/Amsterdam/Amsterdam_party1.xml" Opponent-agentName="IAMhaggler2011" Opponent-agentClass="agents.anac.y2011.IAMhaggler2011.IAMhaggler2011" Opponent-utilspace="etc/templates/anac/y2011/Amsterdam/Amsterdam_party2.xml" finalUtility="0.92" discountedUtility="0.92" bestAcceptableBid="0.0" bestDiscountedAccepableBid="0.0" maxUtility="1.0" normalizedUtility="0.92" AcceptedBy="agentB"> 
+</resultsOfAgent> 
+<resultsOfAgent agent="B" agentName="IAMhaggler2011" agentClass="agents.anac.y2011.IAMhaggler2011.IAMhaggler2011" utilspace="etc/templates/anac/y2011/Amsterdam/Amsterdam_party2.xml" Opponent-agentName="HardHeaded" Opponent-agentClass="agents.anac.y2011.HardHeaded.KLH" Opponent-utilspace="etc/templates/anac/y2011/Amsterdam/Amsterdam_party1.xml" finalUtility="0.7433333333333333" discountedUtility="0.7433333333333333" bestAcceptableBid="0.7433333333333333" bestDiscountedAccepableBid="0.8602589895333334" maxUtility="1.0" normalizedUtility="0.7433333333333333" AcceptedBy="agentB"> 
+</resultsOfAgent> 
+</NegotiationOutcome> 

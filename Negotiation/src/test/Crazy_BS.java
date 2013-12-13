@@ -24,7 +24,7 @@ import negotiator.boaframework.opponentmodel.NoModel;
  * 
  * @author Alex Dirkzwager, Mark Hendrikx
  */
-public class TimeDependent_Offering extends OfferingStrategy {
+public class Crazy_BS extends OfferingStrategy {
 
 	/** k \in [0, 1]. For k = 0 the agent starts with a bid of maximum utility */
 	private double k;
@@ -41,9 +41,9 @@ public class TimeDependent_Offering extends OfferingStrategy {
 	 * Empty constructor used for reflexion. Note this constructor assumes that init
 	 * is called next.
 	 */
-	public TimeDependent_Offering(){}
+	public Crazy_BS(){}
 	
-	public TimeDependent_Offering(NegotiationSession negoSession, OpponentModel model, OMStrategy oms, double e, double k, double max, double min){
+	public Crazy_BS(NegotiationSession negoSession, OpponentModel model, OMStrategy oms, double e, double k, double max, double min){
 		this.e = e;
 		this.k = k;
 		this.Pmax = max;

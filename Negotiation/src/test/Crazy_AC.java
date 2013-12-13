@@ -16,7 +16,7 @@ import negotiator.boaframework.OfferingStrategy;
  * @author Alex Dirkzwager, Mark Hendrikx
  * @version 18/12/11
  */
-public class AC_Next extends AcceptanceStrategy {
+public class Crazy_AC extends AcceptanceStrategy {
 	
 	private double a;
 	private double b;
@@ -24,9 +24,9 @@ public class AC_Next extends AcceptanceStrategy {
 	/**
 	 * Empty constructor for the BOA framework.
 	 */
-	public AC_Next() { }
+	public Crazy_AC() { }
 	
-	public AC_Next(NegotiationSession negoSession, OfferingStrategy strat, double alpha, double beta){
+	public Crazy_AC(NegotiationSession negoSession, OfferingStrategy strat, double alpha, double beta){
 		this.negotiationSession = negoSession;
 		this.offeringStrategy = strat;
 		this.a =  alpha;

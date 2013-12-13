@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <repository fileName="boarepository.xml">
     <biddingstrategies>
+    	
+    	<biddingstrategy description="Crazy_BS" classPath="test.Crazy_BS">
+    		<parameter name="e" default="0.02" description="Concession rate"/>
+    	</biddingstrategy>
+    	
 		<biddingstrategy description="Other - Offer decreasing utility" classPath="negotiator.boaframework.offeringstrategy.other.ChoosingAllBids"/>
 		<biddingstrategy description="Other - Random walker" classPath="negotiator.boaframework.offeringstrategy.other.Random_Offering"/>
 		<biddingstrategy description="Other - Better Time dependent" classPath="negotiator.boaframework.offeringstrategy.other.GeniusTimeDependent_Offering">		

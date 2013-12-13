@@ -14,7 +14,7 @@ import negotiator.boaframework.OpponentModel;
  *
  * @author Mark Hendrikx
  */
-public class BestBid extends OMStrategy {
+public class Crazy_OMS extends OMStrategy {
 
 	/**  when to stop updating the opponentmodel. Note that this value
 	 * 	 is not exactly one as a match sometimes lasts slightly longer. */
@@ -23,14 +23,14 @@ public class BestBid extends OMStrategy {
 	/**
 	 * Empty constructor for the BOA framework.
 	 */
-	public BestBid() { }
+	public Crazy_OMS() { }
 
 	/**
 	 * Normal constructor used to initialize the BestBid opponent model strategy.
 	 * @param negotiationSession symbolizing the negotiation state.
 	 * @param model used by the opponent model strategy.
 	 */
-	public BestBid(NegotiationSession negotiationSession, OpponentModel model) {
+	public Crazy_OMS(NegotiationSession negotiationSession, OpponentModel model) {
 		try {
 			super.init(negotiationSession, model);
 		} catch (Exception e) {

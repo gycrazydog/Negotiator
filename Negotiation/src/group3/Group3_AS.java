@@ -1,4 +1,4 @@
-package test;
+package group3;
 
 import java.util.HashMap;
 import negotiator.boaframework.AcceptanceStrategy;
@@ -16,7 +16,7 @@ import negotiator.boaframework.OfferingStrategy;
  * @author Alex Dirkzwager, Mark Hendrikx
  * @version 18/12/11
  */
-public class Crazy_AC extends AcceptanceStrategy {
+public class Group3_AS extends AcceptanceStrategy {
 	
 	private double a;
 	private double b;
@@ -24,9 +24,9 @@ public class Crazy_AC extends AcceptanceStrategy {
 	/**
 	 * Empty constructor for the BOA framework.
 	 */
-	public Crazy_AC() { }
+	public Group3_AS() { }
 	
-	public Crazy_AC(NegotiationSession negoSession, OfferingStrategy strat, double alpha, double beta){
+	public Group3_AS(NegotiationSession negoSession, OfferingStrategy strat, double alpha, double beta){
 		this.negotiationSession = negoSession;
 		this.offeringStrategy = strat;
 		this.a =  alpha;
@@ -57,7 +57,6 @@ public class Crazy_AC extends AcceptanceStrategy {
 	public Actions determineAcceptability() {
 		double nextMyBidUtil = offeringStrategy.getNextBid().getMyUndiscountedUtil();
 		double lastOpponentBidUtil = negotiationSession.getOpponentBidHistory().getLastBidDetails().getMyUndiscountedUtil();
-		
 		if (a * lastOpponentBidUtil + b >= nextMyBidUtil) {
 			return Actions.Accept;
 		}

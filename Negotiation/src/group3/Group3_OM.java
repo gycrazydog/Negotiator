@@ -1,4 +1,4 @@
-package test;
+package group3;
 
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -29,7 +29,7 @@ import negotiator.utility.UtilitySpace;
  * 
  * @author Mark Hendrikx
  */
-public class Crazy_OM extends OpponentModel {
+public class Group3_OM extends OpponentModel {
 
 	// the learning coefficient is the weight that is added each turn to the issue weights
 	// which changed. It's a trade-off between concession speed and accuracy.

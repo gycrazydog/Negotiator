@@ -1,4 +1,4 @@
-package test;
+package group3;
 
 import java.util.HashMap;
 
@@ -24,7 +24,7 @@ import negotiator.boaframework.opponentmodel.NoModel;
  * 
  * @author Alex Dirkzwager, Mark Hendrikx
  */
-public class Crazy_BS extends OfferingStrategy {
+public class Group3_BS extends OfferingStrategy {
 
 	/** k \in [0, 1]. For k = 0 the agent starts with a bid of maximum utility */
 	private double k;
@@ -36,14 +36,13 @@ public class Crazy_BS extends OfferingStrategy {
 	private double e;
 	/** Outcome space */
 	SortedOutcomeSpace outcomespace;
-	
 	/**
 	 * Empty constructor used for reflexion. Note this constructor assumes that init
 	 * is called next.
 	 */
-	public Crazy_BS(){}
+	public Group3_BS(){}
 	
-	public Crazy_BS(NegotiationSession negoSession, OpponentModel model, OMStrategy oms, double e, double k, double max, double min){
+	public Group3_BS(NegotiationSession negoSession, OpponentModel model, OMStrategy oms, double e, double k, double max, double min){
 		this.e = e;
 		this.k = k;
 		this.Pmax = max;

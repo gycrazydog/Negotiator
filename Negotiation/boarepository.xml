@@ -2,7 +2,7 @@
 <repository fileName="boarepository.xml">
     <biddingstrategies>
     	
-    	<biddingstrategy description="Crazy_BS" classPath="test.Crazy_BS">
+    	<biddingstrategy description="Group3_BS" classPath="group3.Group3_BS">
     		<parameter name="e" default="0.02" description="Concession rate"/>
     	</biddingstrategy>
     	
@@ -29,6 +29,10 @@
 		<acceptancecondition description="Other - Constant" classPath="negotiator.boaframework.acceptanceconditions.other.AC_Const">
 			<parameter name="c" default="0.9" description="If utility of opponent's bid greater than c, then accept"/>
 		</acceptancecondition>
+		<acceptancecondition description=Group3_AS" classPath="group3.Group3_AS">		
+			<parameter name="a" default="1.0" description="Accept when the opponent's utility * a + b is greater than the utility of our current bid"/>
+			<parameter name="b" default="0.0" description="Accept when the opponent's utility * a + b is greater than the utility of our current bid"/>
+		</acceptancecondition>
 		<acceptancecondition description="Other - Next" classPath="negotiator.boaframework.acceptanceconditions.other.AC_Next">		
 			<parameter name="a" default="1.0" description="Accept when the opponent's utility * a + b is greater than the utility of our current bid"/>
 			<parameter name="b" default="0.0" description="Accept when the opponent's utility * a + b is greater than the utility of our current bid"/>
@@ -41,6 +45,9 @@
 		<acceptancecondition description="2011 - IAMHaggler2011" classPath="negotiator.boaframework.acceptanceconditions.anac2011.AC_IAMHaggler2011"/>
 	</acceptanceconditions>
 	<opponentmodels>
+		<opponentmodel description="Group3_OM" classPath="group3.Group3_OM">
+			<parameter name="l" default="0.2" description="The learning coefficient determines how quickly the issue weights are learned"/>
+		</opponentmodel>
 		<opponentmodel description="No Model" classPath="negotiator.boaframework.opponentmodel.NoModel"/>
 		<opponentmodel description="HardHeaded Frequency Model" classPath="negotiator.boaframework.opponentmodel.HardHeadedFrequencyModel">
 			<parameter name="l" default="0.2" description="The learning coefficient determines how quickly the issue weights are learned"/>
@@ -52,6 +59,9 @@
 		<opponentmodel description="CUHKFrequencyModelV2" classPath="negotiator.boaframework.opponentmodel.CUHKFrequencyModelV2"/>
 	</opponentmodels>
 	<omstrategies>
+		<omstrategy description="Group3_OMS" classPath="group3.Group3_OMS">
+			<parameter name="t" default="1.0" description="Time after which the OM should not be updated"/>	
+		</omstrategy>
 		<omstrategy description="Best bid" classPath="negotiator.boaframework.omstrategy.BestBid">
 			<parameter name="t" default="1.0" description="Time after which the OM should not be updated"/>	
 		</omstrategy>

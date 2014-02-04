@@ -38,6 +38,7 @@ public class Group3_BS extends OfferingStrategy {
 	SortedOutcomeSpace outcomespace;
 	double hardheadedT = 0.6;
 	double reserveU = 0.7;
+	double tradeoffU = 0.8;
 	/**
 	 * Empty constructor used for reflexion. Note this constructor assumes that init
 	 * is called next.
@@ -102,21 +103,46 @@ public class Group3_BS extends OfferingStrategy {
 	@Override
 	public BidDetails determineNextBid() {
 		double time = negotiationSession.getTime();
+		BidDetails lastOpponentBid = negotiationSession.getOpponentBidHistory().getLastBidDetails();
 		double utilityGoal;
 
 		if(time<hardheadedT)
 			return outcomespace.getMaxBidPossible();
-		
-		time = (time-hardheadedT)/(1-hardheadedT);
-		utilityGoal = Pmax-(Pmax-reserveU)*time;
-		
-//		System.out.println("[e=" + e + ", Pmin = " + BilateralAgent.round2(Pmin) + "] t = " + BilateralAgent.round2(time) + ". Aiming for " + utilityGoal);
-		
-		// if there is no opponent model available
-		if (opponentModel instanceof NoModel) {
-			nextBid = negotiationSession.getOutcomeSpace().getBidNearUtility(utilityGoal);
-		} else {
-			nextBid = omStrategy.getBid(outcomespace.getAllOutcomes());
+		else{
+			try{
+				double bestUtil = tradeoffU;
+				BidDetails bestBid = null;
+				int issuenum = negotiationSession.getIssues().size();
+				for(BidDetails bd : outcomespace.getAllOutcomes())
+				{
+					int diff = 0;
+					for(int i = 1 ; i <= issuenum ; i ++ )
+					{
+						if(!bd.getBid().getValue(i).equals(lastOpponentBid.getBid().getValue(i)))
+							diff++;
+					}
+					double curUtility = negotiationSession.getUtilitySpace().getUtility(bd.getBid());
+					if(diff == 1&&curUtility>bestUtil)
+					{
+						bestUtil = curUtility;
+						bestBid = bd;	
+						System.out.println("bestBid  "+bestBid.getBid().toString()+" bestUtility " + bestUtil );
+					}
+				}
+				if(bestBid != null)
+					return bestBid;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			time = (time-hardheadedT)/(1-hardheadedT);
+			utilityGoal = Pmax-(Pmax-reserveU)*time;
+
+			if (opponentModel instanceof NoModel) {
+				nextBid = negotiationSession.getOutcomeSpace().getBidNearUtility(utilityGoal);
+			} else {
+				nextBid = omStrategy.getBid(outcomespace.getAllOutcomes());
 			try {
 				double res = negotiationSession.getUtilitySpace().getUtility(nextBid.getBid());
 				if(res<utilityGoal)
@@ -127,6 +153,7 @@ public class Group3_BS extends OfferingStrategy {
 			}
 		}
 		return nextBid;
+		}
 	}
 	
 }

@@ -7,6 +7,7 @@
             <agentRepItem description="" classPath="" agentName="And make sure /etc/templates is in the same directory"/>
             <agentRepItem description="simple agent" classPath="agents.BayesianAgent" agentName="BayesianAgent"/>
             <agentRepItem description="basic UI agent" classPath="agents.UIAgent" agentName="UI agent"/>
+            <agentRepItem agentName="ANAC 2011 - Gahboninho" classPath="agents.anac.y2011.Gahboninho.Gahboninho" description="ANAC 2011 - Gahboninho"/>
         </agentRepItems>
         <domainRepItem/>
         <protocolRepItem/>

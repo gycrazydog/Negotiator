@@ -107,8 +107,9 @@ public class Group3_BS extends OfferingStrategy {
 		double time = negotiationSession.getTime();
 		double utilityGoal;
 		utilityGoal = Pmax-(Pmax-0.7)*time;
-		System.out.println(Pmax+" "+time);
-		
+		System.out.println(Pmax+" "+outcomespace.getMaxBidPossible());
+		if(time<0.6)
+			return outcomespace.getMaxBidPossible();
 //		System.out.println("[e=" + e + ", Pmin = " + BilateralAgent.round2(Pmin) + "] t = " + BilateralAgent.round2(time) + ". Aiming for " + utilityGoal);
 		
 		// if there is no opponent model available

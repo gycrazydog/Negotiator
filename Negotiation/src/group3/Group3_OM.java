@@ -1,13 +1,19 @@
 package group3;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
+
 import negotiator.Bid;
 import negotiator.bidding.BidDetails;
 import negotiator.boaframework.NegotiationSession;
 import negotiator.boaframework.OpponentModel;
+import negotiator.boaframework.offeringstrategy.anac2010.IAMhaggler2010.EvaluatorHypothesis;
 import negotiator.issue.Issue;
 import negotiator.issue.Objective;
+import negotiator.issue.Value;
 import negotiator.issue.ValueDiscrete;
 import negotiator.issue.IssueDiscrete;
 import negotiator.utility.Evaluator;
@@ -30,15 +36,13 @@ import negotiator.utility.UtilitySpace;
  * @author Mark Hendrikx
  */
 public class Group3_OM extends OpponentModel {
-
-	// the learning coefficient is the weight that is added each turn to the issue weights
-	// which changed. It's a trade-off between concession speed and accuracy.
-	private double learnCoef;
-	// value which is added to a value if it is found. Determines how fast
-	// the value weights converge.
-	private int learnValueAddition;
 	private int amountOfIssues;
-	
+	private double[] weights;
+	private ArrayList<UtilitySpace> hypow;
+	private ArrayList<HashMap<UtilitySpace,Double>> piw;
+	private ArrayList<HashMap<UtilitySpace,Double>> pie;
+	private double[] ExpWUtility;
+	private double[] ExpEUtility;
 	/**
 	 * Initializes the utility space of the opponent such that all value
 	 * issue weights are equal.
@@ -46,117 +50,225 @@ public class Group3_OM extends OpponentModel {
 	@Override
 	public void init(NegotiationSession negotiationSession, HashMap<String, Double> parameters) throws Exception {
 		this.negotiationSession = negotiationSession;
-		if (parameters != null && parameters.get("l") != null) {
-			learnCoef = parameters.get("l");
-		} else {
-			learnCoef = 0.2;
-		}
-		learnValueAddition = 1;
 		initializeModel();
 	}
 	
 	private void initializeModel(){
 		opponentUtilitySpace = new UtilitySpace(negotiationSession.getUtilitySpace());
 		amountOfIssues = opponentUtilitySpace.getDomain().getIssues().size();
-		double commonWeight = 1D / (double)amountOfIssues;    
 		
-		// initialize the weights
-		for(Entry<Objective, Evaluator> e: opponentUtilitySpace.getEvaluators()){
-			// set the issue weights
-			opponentUtilitySpace.unlock(e.getKey());
-			e.getValue().setWeight(commonWeight);
-			try {
-				// set all value weights to one (they are normalized when calculating the utility)
-				for(ValueDiscrete vd : ((IssueDiscrete)e.getKey()).getValues())
-					((EvaluatorDiscrete)e.getValue()).setEvaluation(vd,1);  
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		}
+		initializeWeight();
 	}
 	
-	/**
-	 * Determines the difference between bids. For each issue, it is determined if the
-	 * value changed. If this is the case, a 1 is stored in a hashmap for that issue, else a 0.
-	 * 
-	 * @param a bid of the opponent
-	 * @param another bid
-	 * @return
-	 */
-	private HashMap<Integer, Integer> determineDifference(BidDetails first, BidDetails second){
-		
-		HashMap<Integer, Integer> diff = new HashMap<Integer, Integer>();
-		try{
-			for(Issue i : opponentUtilitySpace.getDomain().getIssues()){
-				diff.put(i.getNumber(), (
-						((ValueDiscrete)first.getBid().getValue(i.getNumber())).equals((ValueDiscrete)second.getBid().getValue(i.getNumber()))
-						 				)?0:1);
-			}
-		} catch (Exception ex){
-			ex.printStackTrace();
+	private void initializeWeight() {
+		// TODO Auto-generated method stub
+		this.weights = new double[amountOfIssues+1];
+		double aoi = (double)amountOfIssues;
+		for(int i = 1 ; i <= amountOfIssues ; i ++)
+		{
+			weights[i] = 2*(i)/(aoi*(aoi+1));
 		}
+		HashMap<Objective,Evaluator> hypos = new HashMap<Objective,Evaluator>();
+		piw = new ArrayList<HashMap<UtilitySpace,Double>>();
+		pie = new ArrayList<HashMap<UtilitySpace,Double>>();
+		for(int i = 0 ; i <= amountOfIssues ; i ++)
+		{
+			piw.add(new HashMap<UtilitySpace,Double>());
+			pie.add(new HashMap<UtilitySpace,Double>());
+		}
+		hypow = new ArrayList<UtilitySpace>();
+		ExpWUtility = new double[amountOfIssues+1];
+		ExpEUtility = new double[amountOfIssues+1];
 		
-		return diff;
+		Set<Entry<Objective, Evaluator>>opspace = opponentUtilitySpace.getEvaluators();
+		try {
+			constructHypoIssue(1,opspace,hypos);
+			constructHypoEvaluator(opspace);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		List<BidDetails> os = negotiationSession.getOutcomeSpace().getAllOutcomes();
+		int size = hypow.size();
+		for(int j = 1 ; j <= amountOfIssues ;j++)
+		{	
+			HashMap<UtilitySpace,Double> tempmap= piw.get(j);
+			for(int i = 0 ; i < size ; i ++)
+				{
+					tempmap.put(hypow.get(i), 1.0/(double)(hypow.size()));
+				}
+			piw.set(j, tempmap);
+		}
 	}
-	
+
+	private void constructHypoEvaluator(Set<Entry<Objective, Evaluator>> opspace) throws Exception {
+		// TODO Auto-generated method stub
+		for(Entry<Objective, Evaluator> entry : opspace)
+		{
+			IssueDiscrete id = ((IssueDiscrete)entry.getKey());
+			EvaluatorDiscrete eva = (EvaluatorDiscrete)entry.getValue();
+			int issuenum = id.getNumber();
+			int num = id.getNumberOfValues();
+			HashMap<UtilitySpace,Double> tempmap = pie.get(issuenum);
+			eva.setWeight(1.0/amountOfIssues);
+			for(ValueDiscrete vd : id.getValues())
+			{	
+				UtilitySpace newspace = new UtilitySpace(negotiationSession.getDomain());
+				eva.setEvaluation(vd,100);
+				for(ValueDiscrete vd1 : id.getValues())
+				{
+					if(vd1==vd)
+					continue;
+					else if(id.getValueIndex(vd1)<id.getValueIndex(vd))
+						eva.setEvaluation(vd1, id.getValueIndex(vd1)*100/id.getValueIndex(vd));
+					else
+						eva.setEvaluation(vd1, (id.getValueIndex(vd1)-num)*100/(id.getValueIndex(vd)-num));
+				}
+				newspace.addEvaluator(id, eva);
+				tempmap.put(newspace, 1.0/(double)num);
+			}
+			pie.set(issuenum, tempmap);
+		}
+	}
+
+	private void constructHypoIssue(int rank,Set<Entry<Objective, Evaluator>>opspace,HashMap<Objective,Evaluator> hypos) throws Exception {
+		if(rank>amountOfIssues){
+			UtilitySpace newspace = new UtilitySpace(negotiationSession.getDomain());
+			for(Entry<Objective, Evaluator> entry : hypos.entrySet()){
+				newspace.addEvaluator(entry.getKey(), entry.getValue());
+				newspace.unlock(entry.getKey());
+			}
+			hypow.add(newspace);
+			return ;
+		}
+		for(Entry<Objective, Evaluator> entry : opspace)
+		{
+			if(hypos.containsKey(entry.getKey())) continue;
+			IssueDiscrete id = ((IssueDiscrete)entry.getKey());
+			EvaluatorDiscrete eva = (EvaluatorDiscrete)entry.getValue();
+			eva.setWeight(weights[rank]);
+			for(ValueDiscrete vd : id.getValues()){
+				eva.setEvaluation(vd,1);
+			}
+			hypos.put(entry.getKey(), eva);
+			constructHypoIssue(rank+1,opspace,hypos);	
+			hypos.remove(entry.getKey());
+		}
+		return;
+	}
+
 	/**
 	 * Updates the opponent model given a bid.
 	 */
 	@Override
 	public void updateModel(Bid opponentBid, double time) {		
-		if(negotiationSession.getOpponentBidHistory().size() < 2) {
-			return;
-		}
-		int numberOfUnchanged = 0;
-		BidDetails oppBid = negotiationSession.getOpponentBidHistory().getHistory().get(negotiationSession.getOpponentBidHistory().size() - 1);
-		BidDetails prevOppBid = negotiationSession.getOpponentBidHistory().getHistory().get(negotiationSession.getOpponentBidHistory().size() - 2);
-		HashMap<Integer, Integer> lastDiffSet = determineDifference(prevOppBid, oppBid);
-		
-		// count the number of changes in value
-		for(Integer i: lastDiffSet.keySet()){
-			if(lastDiffSet.get(i) == 0)
-				numberOfUnchanged ++;
-		}
-		
-		// This is the value to be added to weights of unchanged issues before normalization. 
-		// Also the value that is taken as the minimum possible weight, (therefore defining the maximum possible also). 
-		double goldenValue = learnCoef / (double)amountOfIssues;
-		// The total sum of weights before normalization.
-		double totalSum = 1D + goldenValue * (double)numberOfUnchanged;
-		// The maximum possible weight
-		double maximumWeight = 1D - ((double)amountOfIssues) * goldenValue / totalSum; 
-		
-		
-		
-		// re-weighing issues while making sure that the sum remains 1 
-		for(Integer i: lastDiffSet.keySet()){
-			if (lastDiffSet.get(i) == 0 && opponentUtilitySpace.getWeight(i)< maximumWeight)
-				opponentUtilitySpace.setWeight(opponentUtilitySpace.getDomain().getObjective(i), (opponentUtilitySpace.getWeight(i) + goldenValue)/totalSum);
-			else
-				opponentUtilitySpace.setWeight(opponentUtilitySpace.getDomain().getObjective(i), opponentUtilitySpace.getWeight(i)/totalSum);
-		}
-		
-		// Then for each issue value that has been offered last time, a constant value is added to its corresponding ValueDiscrete.
 		try{
-			for(Entry<Objective, Evaluator> e: opponentUtilitySpace.getEvaluators()){
-				( (EvaluatorDiscrete)e.getValue() ).setEvaluation(oppBid.getBid().getValue(((IssueDiscrete)e.getKey()).getNumber()), 
-					( learnValueAddition + 
-						((EvaluatorDiscrete)e.getValue()).getEvaluationNotNormalized( 
-							( (ValueDiscrete)oppBid.getBid().getValue(((IssueDiscrete)e.getKey()).getNumber()) ) 
-						)
-					)
-				);
+			double sum = 0.0;
+			for(int k = 1 ; k <= amountOfIssues ; k ++){
+				ExpEUtility[k] = 0.0;
+				ExpWUtility[k] = 0.0;
+				HashMap<UtilitySpace,Double> curpe = pie.get(k);
+				for(Entry<UtilitySpace,Double> temp : curpe.entrySet()){
+					UtilitySpace hh = (UtilitySpace)temp.getKey();
+					Double val = (double)temp.getValue();
+					ExpEUtility[k] += val*hh.getEvaluation(k, opponentBid);
+				}
+				
+				HashMap<UtilitySpace,Double> curpw = piw.get(k);
+				for(Entry<UtilitySpace,Double> temp : curpw.entrySet()){
+					UtilitySpace hh = (UtilitySpace)temp.getKey();
+					Double val = (double)temp.getValue();
+					ExpWUtility[k] += val*hh.getWeight(k);
+				}
+				sum += ExpWUtility[k]*ExpEUtility[k];
 			}
-		} catch(Exception ex){
-			ex.printStackTrace();
+			for(int k = 1 ; k <= amountOfIssues ; k ++){
+				double sume = 0.0;
+				double sumw = 0.0;
+				//calculate  p(he|bt)
+				HashMap<UtilitySpace,Double> curpe = pie.get(k);
+				for(Entry<UtilitySpace,Double> temp : curpe.entrySet()){
+					UtilitySpace hh = (UtilitySpace)temp.getKey();
+					Double val = (double)temp.getValue();
+					sume += val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*hh.getEvaluation(k, opponentBid));
+				}
+				for(Entry<UtilitySpace,Double> temp : curpe.entrySet()){
+					UtilitySpace hh = (UtilitySpace)temp.getKey();
+					Double val = (double)temp.getValue();
+					double normalsume = 1.0-val;
+					val = val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*hh.getEvaluation(k, opponentBid))/sume;
+					//normalization
+					normalsume += val;
+					curpe.put(hh,val);
+					for(Entry<UtilitySpace,Double> temp1 : curpe.entrySet()){
+						UtilitySpace hh1 = (UtilitySpace)temp1.getKey();
+						Double val1 = (double)temp1.getValue();
+						curpe.put(hh1, val1/normalsume);
+					}
+				}
+				//calculate p(hw|bt)
+				HashMap<UtilitySpace,Double> curpw = piw.get(k);
+				for(Entry<UtilitySpace,Double> temp : curpw.entrySet()){
+					UtilitySpace hh = (UtilitySpace)temp.getKey();
+					Double val = (double)temp.getValue();
+					sumw += val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*val*hh.getWeight(k));
+				}
+				for(Entry<UtilitySpace,Double> temp : curpw.entrySet()){
+					UtilitySpace hh = (UtilitySpace)temp.getKey();
+					Double val = (double)temp.getValue();
+					double normalsumw = 1.0-val;
+					val = val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*val*hh.getWeight(k))/sumw;
+					//normalization
+					normalsumw += val;
+					for(Entry<UtilitySpace,Double> temp1 : curpw.entrySet()){
+						UtilitySpace hh1 = (UtilitySpace)temp1.getKey();
+						Double val1 = (double)temp1.getValue();
+						curpw.put(hh1, val1/normalsumw);
+					}
+				}
+				pie.set(k, curpe);		
+				piw.set(k, curpw);
+			}
 		}
+		catch(Exception e){
+			System.out.println("Opps!");
+		}
+	}
+
+	private Double condiProb(double utility) throws Exception {
+		double thrta = 0.1;
+		double utilityExp = 1-0.05*negotiationSession.getTime();
+		double expoArg = (-1)*(utility-utilityExp)*(utility-utilityExp)/(2*thrta*thrta);
+		double ans = Math.pow(Math.E, expoArg)/(thrta*Math.sqrt(2*Math.PI));
+		return ans;
 	}
 
 	@Override
 	public double getBidEvaluation(Bid bid) {
 		double result = 0;
 		try {
-			result = opponentUtilitySpace.getUtility(bid);
+			//calculate the u(bt) by multiple expected hw and he for every issue
+			for(int k = 1 ; k <= amountOfIssues ; k ++){
+				double uE = 0.0;
+				double uW = 0.0;
+				
+				HashMap<UtilitySpace,Double> curpe = pie.get(k);
+				for(Entry<UtilitySpace,Double> temp : curpe.entrySet()){
+					UtilitySpace hh = (UtilitySpace)temp.getKey();
+					Double val = (double)temp.getValue();
+					uE += val*hh.getEvaluation(k, bid);
+				}
+				
+				HashMap<UtilitySpace,Double> curpw = piw.get(k);
+				for(Entry<UtilitySpace,Double> temp : curpw.entrySet()){
+					UtilitySpace hh = (UtilitySpace)temp.getKey();
+					Double val = (double)temp.getValue();
+					uW += val*hh.getWeight(k);
+				}
+				result += uE*uW;
+				System.out.println(result);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -165,6 +277,6 @@ public class Group3_OM extends OpponentModel {
 	
 	@Override
 	public String getName() {
-		return "HardHeaded Frequency Model";
+		return "Group3_OpponentModeling";
 	}
 }

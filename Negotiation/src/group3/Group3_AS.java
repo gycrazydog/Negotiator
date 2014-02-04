@@ -76,7 +76,7 @@ public class Group3_AS extends AcceptanceStrategy {
 			double totalsessions = (double)negotiationSession.getOpponentBidHistory().size()+(double)negotiationSession.getOwnBidHistory().size();
 			double avgtime;
 			avgtime = time/totalsessions;
-			if(1-time<avgtime)
+			if(1-time<avgtime*10)
 			{
 				if(lastOpponentBidUtil>ACconsta)
 				return Actions.Accept;

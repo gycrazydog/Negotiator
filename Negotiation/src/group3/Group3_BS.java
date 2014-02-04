@@ -11,44 +11,23 @@ import negotiator.boaframework.SortedOutcomeSpace;
 import negotiator.boaframework.opponentmodel.NoModel;
 
 /**
- * This is an abstract class used to implement a TimeDependentAgent Strategy adapted from [1]
- * 	[1]	S. Shaheen Fatima  Michael Wooldridge  Nicholas R. Jennings
- * 		Optimal Negotiation Strategies for Agents with Incomplete Information
- * 		http://eprints.ecs.soton.ac.uk/6151/1/atal01.pdf
+ * Adapted mix strategies here, first offer is our bid with best utility.And everytime making bidding,try to tradeoff 
+ * by looking for a good enough alternative for last bid of opponent. If it fails, adapt opponent model and 
+ * concede goalUtility to find a bid. 
  * 
- * The default strategy was extended to enable the usage of opponent models.
+ * TeamWork: Canran Gou and Shijie Li
  * 
- * Note that this agent is not fully equivalent to the theoretical model, loading the domain
- * may take some time, which may lead to the agent skipping the first bid. A better implementation
- * is GeniusTimeDependent_Offering. 
- * 
- * @author Alex Dirkzwager, Mark Hendrikx
+ * @author Canran Gou
  */
 public class Group3_BS extends OfferingStrategy {
-
-	/** k \in [0, 1]. For k = 0 the agent starts with a bid of maximum utility */
-	private double k;
-	/** Maximum target utility */
 	private double Pmax;
-	/** Minimum target utility */
-	private double Pmin;
-	/** Concession factor */
-	private double e;
-	/** Outcome space */
 	SortedOutcomeSpace outcomespace;
 	double reserveU = 0.7;
 	double tradeoffU = 0.8;
-	/**
-	 * Empty constructor used for reflexion. Note this constructor assumes that init
-	 * is called next.
-	 */
 	public Group3_BS(){}
 	
 	public Group3_BS(NegotiationSession negoSession, OpponentModel model, OMStrategy oms, double e, double k, double max, double min){
-		this.e = e;
-		this.k = k;
 		this.Pmax = max;
-		this.Pmin = min;
 		this.negotiationSession = negoSession;
 		outcomespace = new SortedOutcomeSpace(negotiationSession.getUtilitySpace());
 		negotiationSession.setOutcomeSpace(outcomespace);
@@ -58,39 +37,23 @@ public class Group3_BS extends OfferingStrategy {
 	
 	/**
 	 * Method which initializes the agent by setting all parameters.
-	 * The parameter "e" is the only parameter which is required.
+	 * No params needed here
 	 */
 	public void init(NegotiationSession negoSession, OpponentModel model, OMStrategy oms, HashMap<String, Double> parameters) throws Exception {
-		if (parameters.get("e") != null) {
-			this.negotiationSession = negoSession;
+		this.negotiationSession = negoSession;
 			
-			outcomespace = new SortedOutcomeSpace(negotiationSession.getUtilitySpace());
-			negotiationSession.setOutcomeSpace(outcomespace);
-			
-			this.e = parameters.get("e");
-			
-			if (parameters.get("k") != null)
-				this.k = parameters.get("k");
-			else
-				this.k = 0;
-			
-			if (parameters.get("min") != null)
-				this.Pmin = parameters.get("min");
-			else
-				this.Pmin = negoSession.getMinBidinDomain().getMyUndiscountedUtil();
+		outcomespace = new SortedOutcomeSpace(negotiationSession.getUtilitySpace());
+		negotiationSession.setOutcomeSpace(outcomespace);
 		
-			if (parameters.get("max") != null) {
-				Pmax= parameters.get("max");
-			} else {
-				BidDetails maxBid = negoSession.getMaxBidinDomain();
-				Pmax = maxBid.getMyUndiscountedUtil();
-			}
-			
-			this.opponentModel = model;
-			this.omStrategy = oms;
+		if (parameters.get("max") != null) {
+			Pmax= parameters.get("max");
 		} else {
-			throw new Exception("Constant \"e\" for the concession speed was not set.");
+			BidDetails maxBid = negoSession.getMaxBidinDomain();
+			Pmax = maxBid.getMyUndiscountedUtil();
 		}
+			
+		this.opponentModel = model;
+		this.omStrategy = oms;
 	}
 
 	@Override
@@ -105,24 +68,28 @@ public class Group3_BS extends OfferingStrategy {
 		BidDetails lastOpponentBid = negotiationSession.getOpponentBidHistory().getLastBidDetails();
 		double utilityGoal;
 
-//		if(time<hardheadedT)
-//			return outcomespace.getMaxBidPossible();
-//		else{
+			//first bid, show our best bid
 			if( negotiationSession.getOpponentBidHistory().size() == 0)
 				return outcomespace.getMaxBidPossible();
+			//try to find a tradeoff bid for current opponent bid, which is at least better than tradeoffUtility
 			try{
 				double bestUtil = tradeoffU;
 				BidDetails bestBid = null;
 				int issuenum = negotiationSession.getIssues().size();
+				//iterate all bids to find tradeoff bids.
 				for(BidDetails bd : outcomespace.getAllOutcomes())
 				{
 					int diff = 0;
 					for(int i = 1 ; i <= issuenum ; i ++ )
 					{
+						//if find different values attached to the same issue of opponent bid
 						if(!bd.getBid().getValue(i).equals(lastOpponentBid.getBid().getValue(i)))
 							diff++;
 					}
 					double curUtility = negotiationSession.getUtilitySpace().getUtility(bd.getBid());
+					/*update best tradeoff bid,if difference between a bid and opponent bid is more than 2 issues, 
+					 *it will not be considered
+					 */
 					if(diff <= 2&&curUtility>bestUtil)
 					{
 						bestUtil = curUtility;

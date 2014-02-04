@@ -93,6 +93,8 @@ public class Group3_OMS extends OMStrategy {
 			Random r = new Random();
 			return allBids.get(r.nextInt(allBids.size()));
 		}
+		System.out.println("best "+bestUtil);
+		//System.out.println("aaaaaaa "+bestUtil);
 		return bestBid;
 	}
 

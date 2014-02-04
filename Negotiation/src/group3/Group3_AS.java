@@ -20,10 +20,11 @@ public class Group3_AS extends AcceptanceStrategy {
 	
 	private double a;
 	private double b;
-        private double time;
-	private double lambda0 = .5; // Lambda needs an initial value
-	private double lambda = .0, lT = 0; // Acceptance treshold of agent at time t
-	private double delta = .8, uMax = 1;
+    private double time;
+	private double lambda = .0,lU; // Acceptance treshold of agent at time t
+	private double ACnextT = 0.9;
+	private double ACtimeU = 0.7;
+	private double ACconsta = 0.6;
 	private double epsilon = 0.01;
 	private double eta = 0.9; 
 	//
@@ -64,30 +65,45 @@ public class Group3_AS extends AcceptanceStrategy {
 	public Actions determineAcceptability() {
 		double nextMyBidUtil = offeringStrategy.getNextBid().getMyUndiscountedUtil();
 		double lastOpponentBidUtil = negotiationSession.getOpponentBidHistory().getLastBidDetails().getMyUndiscountedUtil();
-		if(nextMyBidUtil > lT|| a *lastOpponentBidUtil  + b> nextMyBidUtil){
-	//	if (a * lastOpponentBidUtil + b >= nextMyBidUtil && time) {
-			return Actions.Accept;
+		time = negotiationSession.getTime();
+		//System.out.println("time  "+time);
+		if(time<ACnextT){
+			if(lastOpponentBidUtil> nextMyBidUtil){
+				return Actions.Accept;
+			}
+			else
+				return Actions.Reject;
 		}
-		return Actions.Reject;
-	}
-        
- 	private final double beta = 1., gamma = 1., weight = 1.;
-	private double sigma;
-        
-    public void setLambda(double time) {
-		if (time == 0)
-			lambda = lambda0 + (1 - lambda) * Math.pow(delta, beta);
-		else
-			lambda = lambda + weight * (1 - lambda) * Math.pow(sigma, (time * gamma));
-	}
-        
-    public void setLT(double time) {
-		double alpha = 1; // Linear, boulware or conceder
-		if (time < lambda) {
-			lT = uMax - (uMax - uMax * Math.pow(delta, 1 - lambda))
-					* Math.pow(time / lambda, alpha);
-		} else {
-			lT = uMax * Math.pow(delta, 1 - time);
+		else{
+			double totalsessions = (double)negotiationSession.getOpponentBidHistory().size()+(double)negotiationSession.getOwnBidHistory().size();
+			double avgtime;
+			avgtime = time/totalsessions;
+			if(1-time<avgtime)
+			{
+				if(lastOpponentBidUtil>ACconsta)
+				return Actions.Accept;
+				else
+				return Actions.Reject;
+			}
+			else
+			{
+				setLambda(avgtime);
+				lU = getlU(time);
+				if(lastOpponentBidUtil>lU)
+				return Actions.Accept;
+				else
+				return Actions.Reject;
+			}
 		}
 	}
+        
+    private double getlU(double time) {
+		return 2-Math.pow(Math.E, lambda*(time-ACnextT));
+	}
+
+	public void setLambda(double avgtime) {
+    	lambda = Math.log(2-ACtimeU)/(1-ACnextT-avgtime);
+    }
+        
+    
 }

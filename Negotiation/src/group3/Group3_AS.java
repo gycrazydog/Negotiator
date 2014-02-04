@@ -21,7 +21,7 @@ public class Group3_AS extends AcceptanceStrategy {
     private double time;
 	private double lambda = .0,lU;//Variables for calculating reserved utility during ACtime 
 	private double ACnextT = 0.9;//Deadline for ACnext strategy
-	private double ACtimeU = 0.8;//reserve utility during ACtime
+	private double ACtimeU = 0.85;//reserve utility during ACtime
 	private double ACconsta = 0.6;//reserve utility in the end of session
 	private double greatBidUtil = 0.95;
 	public Group3_AS() { }

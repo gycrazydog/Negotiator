@@ -36,7 +36,6 @@ public class Group3_BS extends OfferingStrategy {
 	private double e;
 	/** Outcome space */
 	SortedOutcomeSpace outcomespace;
-	double hardheadedT = 0.6;
 	double reserveU = 0.7;
 	double tradeoffU = 0.8;
 	/**
@@ -106,9 +105,11 @@ public class Group3_BS extends OfferingStrategy {
 		BidDetails lastOpponentBid = negotiationSession.getOpponentBidHistory().getLastBidDetails();
 		double utilityGoal;
 
-		if(time<hardheadedT)
-			return outcomespace.getMaxBidPossible();
-		else{
+//		if(time<hardheadedT)
+//			return outcomespace.getMaxBidPossible();
+//		else{
+			if( negotiationSession.getOpponentBidHistory().size() == 0)
+				return outcomespace.getMaxBidPossible();
 			try{
 				double bestUtil = tradeoffU;
 				BidDetails bestBid = null;
@@ -122,11 +123,10 @@ public class Group3_BS extends OfferingStrategy {
 							diff++;
 					}
 					double curUtility = negotiationSession.getUtilitySpace().getUtility(bd.getBid());
-					if(diff == 1&&curUtility>bestUtil)
+					if(diff <= 2&&curUtility>bestUtil)
 					{
 						bestUtil = curUtility;
-						bestBid = bd;	
-						System.out.println("bestBid  "+bestBid.getBid().toString()+" bestUtility " + bestUtil );
+						bestBid = bd;
 					}
 				}
 				if(bestBid != null)
@@ -136,7 +136,6 @@ public class Group3_BS extends OfferingStrategy {
 				e.printStackTrace();
 			}
 			
-			time = (time-hardheadedT)/(1-hardheadedT);
 			utilityGoal = Pmax-(Pmax-reserveU)*time;
 
 			if (opponentModel instanceof NoModel) {
@@ -147,13 +146,13 @@ public class Group3_BS extends OfferingStrategy {
 				double res = negotiationSession.getUtilitySpace().getUtility(nextBid.getBid());
 				if(res<utilityGoal)
 					nextBid = omStrategy.getBid(outcomespace,utilityGoal);
-			} catch (Exception e) {
+			} catch (Exception e1) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e1.printStackTrace();
 			}
-		}
-		return nextBid;
-		}
+			//}
+			}
+			return nextBid;
 	}
 	
 }

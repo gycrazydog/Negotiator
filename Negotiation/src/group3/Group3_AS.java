@@ -23,10 +23,8 @@ public class Group3_AS extends AcceptanceStrategy {
     private double time;
 	private double lambda = .0,lU; // Acceptance treshold of agent at time t
 	private double ACnextT = 0.9;
-	private double ACtimeU = 0.7;
+	private double ACtimeU = 0.8;
 	private double ACconsta = 0.6;
-	private double epsilon = 0.01;
-	private double eta = 0.9; 
 	//
 	/**
 	 *

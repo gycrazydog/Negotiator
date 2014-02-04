@@ -20,9 +20,16 @@ public class Group3_AS extends AcceptanceStrategy {
 	
 	private double a;
 	private double b;
-
+        private double time;
+	private double lambda0 = .5; // Lambda needs an initial value
+	private double lambda = .0, lT = 0; // Acceptance treshold of agent at time t
+	private double delta = .8, uMax = 1;
+	private double epsilon = 0.01;
+	private double eta = 0.9; 
+	//
 	/**
-	 * Empty constructor for the BOA framework.
+	 *
+         * 
 	 */
 	public Group3_AS() { }
 	
@@ -57,9 +64,30 @@ public class Group3_AS extends AcceptanceStrategy {
 	public Actions determineAcceptability() {
 		double nextMyBidUtil = offeringStrategy.getNextBid().getMyUndiscountedUtil();
 		double lastOpponentBidUtil = negotiationSession.getOpponentBidHistory().getLastBidDetails().getMyUndiscountedUtil();
-		if (a * lastOpponentBidUtil + b >= nextMyBidUtil) {
+		if(nextMyBidUtil > lT|| a *lastOpponentBidUtil  + b> nextMyBidUtil){
+	//	if (a * lastOpponentBidUtil + b >= nextMyBidUtil && time) {
 			return Actions.Accept;
 		}
 		return Actions.Reject;
+	}
+        
+ 	private final double beta = 1., gamma = 1., weight = 1.;
+	private double sigma;
+        
+    public void setLambda(double time) {
+		if (time == 0)
+			lambda = lambda0 + (1 - lambda) * Math.pow(delta, beta);
+		else
+			lambda = lambda + weight * (1 - lambda) * Math.pow(sigma, (time * gamma));
+	}
+        
+    public void setLT(double time) {
+		double alpha = 1; // Linear, boulware or conceder
+		if (time < lambda) {
+			lT = uMax - (uMax - uMax * Math.pow(delta, 1 - lambda))
+					* Math.pow(time / lambda, alpha);
+		} else {
+			lT = uMax * Math.pow(delta, 1 - time);
+		}
 	}
 }

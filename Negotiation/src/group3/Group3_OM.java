@@ -195,16 +195,8 @@ public class Group3_OM extends OpponentModel {
 				for(Entry<UtilitySpace,Double> temp : curpe.entrySet()){
 					UtilitySpace hh = (UtilitySpace)temp.getKey();
 					Double val = (double)temp.getValue();
-					double normalsume = 1.0-val;
 					val = val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*hh.getEvaluation(k, opponentBid))/sume;
-					//normalization
-					normalsume += val;
 					curpe.put(hh,val);
-					for(Entry<UtilitySpace,Double> temp1 : curpe.entrySet()){
-						UtilitySpace hh1 = (UtilitySpace)temp1.getKey();
-						Double val1 = (double)temp1.getValue();
-						curpe.put(hh1, val1/normalsume);
-					}
 				}
 				//calculate p(hw|bt)
 				HashMap<UtilitySpace,Double> curpw = piw.get(k);
@@ -216,15 +208,8 @@ public class Group3_OM extends OpponentModel {
 				for(Entry<UtilitySpace,Double> temp : curpw.entrySet()){
 					UtilitySpace hh = (UtilitySpace)temp.getKey();
 					Double val = (double)temp.getValue();
-					double normalsumw = 1.0-val;
 					val = val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*val*hh.getWeight(k))/sumw;
-					//normalization
-					normalsumw += val;
-					for(Entry<UtilitySpace,Double> temp1 : curpw.entrySet()){
-						UtilitySpace hh1 = (UtilitySpace)temp1.getKey();
-						Double val1 = (double)temp1.getValue();
-						curpw.put(hh1, val1/normalsumw);
-					}
+					curpw.put(hh,val);
 				}
 				pie.set(k, curpe);		
 				piw.set(k, curpw);
@@ -235,6 +220,7 @@ public class Group3_OM extends OpponentModel {
 		}
 	}
 
+	//calculate the p(bt|hj), in scalable case, p(U<-k>(bt)+hkwj*hkw|hkwj)
 	private Double condiProb(double utility) throws Exception {
 		double thrta = 0.1;
 		double utilityExp = 1-0.05*negotiationSession.getTime();
@@ -252,13 +238,14 @@ public class Group3_OM extends OpponentModel {
 				double uE = 0.0;
 				double uW = 0.0;
 				
+				//calculate the expected pke
 				HashMap<UtilitySpace,Double> curpe = pie.get(k);
 				for(Entry<UtilitySpace,Double> temp : curpe.entrySet()){
 					UtilitySpace hh = (UtilitySpace)temp.getKey();
 					Double val = (double)temp.getValue();
 					uE += val*hh.getEvaluation(k, bid);
 				}
-				
+				//calculate the expected pkw
 				HashMap<UtilitySpace,Double> curpw = piw.get(k);
 				for(Entry<UtilitySpace,Double> temp : curpw.entrySet()){
 					UtilitySpace hh = (UtilitySpace)temp.getKey();
@@ -266,7 +253,6 @@ public class Group3_OM extends OpponentModel {
 					uW += val*hh.getWeight(k);
 				}
 				result += uE*uW;
-				System.out.println(result);
 			}
 			
 		} catch (Exception e) {

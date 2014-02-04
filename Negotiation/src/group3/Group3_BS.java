@@ -22,8 +22,8 @@ import negotiator.boaframework.opponentmodel.NoModel;
 public class Group3_BS extends OfferingStrategy {
 	private double Pmax;
 	SortedOutcomeSpace outcomespace;
-	double reserveU = 0.7;
-	double tradeoffU = 0.8;
+	double reserveU = 0.7;// reserve utility in the end while bidding utility is decreasing
+	double tradeoffU = 0.85;//reserve utility while making tradeoff
 	public Group3_BS(){}
 	
 	public Group3_BS(NegotiationSession negoSession, OpponentModel model, OMStrategy oms, double e, double k, double max, double min){
@@ -37,7 +37,7 @@ public class Group3_BS extends OfferingStrategy {
 	
 	/**
 	 * Method which initializes the agent by setting all parameters.
-	 * No params needed here
+	 * need to find maxUtility for us for concession later
 	 */
 	public void init(NegotiationSession negoSession, OpponentModel model, OMStrategy oms, HashMap<String, Double> parameters) throws Exception {
 		this.negotiationSession = negoSession;
@@ -102,15 +102,17 @@ public class Group3_BS extends OfferingStrategy {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+			//if fails to find a good tradeoff, just set a goalUtility,which concede with time and try to find nearest bid to it
 			utilityGoal = Pmax-(Pmax-reserveU)*time;
-
+			
+			//adapt opponentModel to find the best bid for opponent
 			if (opponentModel instanceof NoModel) {
 				nextBid = negotiationSession.getOutcomeSpace().getBidNearUtility(utilityGoal);
 			} else {
 				nextBid = omStrategy.getBid(outcomespace.getAllOutcomes());
 			try {
 				double res = negotiationSession.getUtilitySpace().getUtility(nextBid.getBid());
+				//if the utility of bid for us is not better than goalUtility, get the nearest bid to it
 				if(res<utilityGoal)
 					nextBid = omStrategy.getBid(outcomespace,utilityGoal);
 			} catch (Exception e1) {

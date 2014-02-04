@@ -10,10 +10,10 @@ import negotiator.boaframework.OMStrategy;
 import negotiator.boaframework.OpponentModel;
 
 /**
- * This class uses an opponent model to determine the next bid for the opponent, while taking
- * the opponent's preferences into account. The opponent model is used to select the best bid.
- *
- * @author Mark Hendrikx
+ * Modified a little bit to call getBid of our own opponent model
+ * TeamWork: Canran Gou and Shijie Li
+ * 
+ * @author Canran Gou
  */
 public class Group3_OMS extends OMStrategy {
 
@@ -79,6 +79,7 @@ public class Group3_OMS extends OMStrategy {
 		boolean allWereZero = true;
 		// 3. Determine the best bid
 		for (BidDetails bid : allBids) {
+			//A little modification, adapted to our own model method
 			double evaluation = model.getBidEvaluation(bid.getBid());
 			if (evaluation > 0.0001) {
 				allWereZero = false;
@@ -93,7 +94,6 @@ public class Group3_OMS extends OMStrategy {
 			Random r = new Random();
 			return allBids.get(r.nextInt(allBids.size()));
 		}
-		System.out.println("best "+bestUtil);
 		//System.out.println("aaaaaaa "+bestUtil);
 		return bestBid;
 	}

@@ -21,9 +21,8 @@ import negotiator.utility.EvaluatorDiscrete;
 import negotiator.utility.UtilitySpace;
 
 /**
- * Adapted mix strategies here, first offer is our bid with best utility.And everytime making bidding,try to tradeoff 
- * by looking for a good enough alternative for last bid of opponent. If it fails, adapt opponent model and 
- * concede goalUtility to find a bid. 
+ * Implement scalable bayesian learning algorithm from paper "Opponent Modelling in Automated Multi-Issue Negotiation 
+ * Using Bayesian Learning" -- Koen Hindriks and Dmytro Tykhonov
  * 
  * TeamWork: Canran Gou and Shijie Li
  * 
@@ -33,14 +32,16 @@ public class Group3_OM extends OpponentModel {
 	private int amountOfIssues;
 	private double[] weights;
 	private ArrayList<UtilitySpace> hypow;
+	/*
+	 * 	utility space of each hypothesis for issues and evaluations
+	 *	For example the ith item of piw Arraylist is the HashMap linking the utilitySpace of ith issue and the Double is 
+	 *	probability of the issue being weighted in utilitySpace. So is the case for pie.
+	*/
 	private ArrayList<HashMap<UtilitySpace,Double>> piw;
 	private ArrayList<HashMap<UtilitySpace,Double>> pie;
+	//expected values for issues and evaluations
 	private double[] ExpWUtility;
 	private double[] ExpEUtility;
-	/**
-	 * Initializes the utility space of the opponent such that all value
-	 * issue weights are equal.
-	 */
 	@Override
 	public void init(NegotiationSession negotiationSession, HashMap<String, Double> parameters) throws Exception {
 		this.negotiationSession = negotiationSession;
@@ -50,18 +51,19 @@ public class Group3_OM extends OpponentModel {
 	private void initializeModel(){
 		opponentUtilitySpace = new UtilitySpace(negotiationSession.getUtilitySpace());
 		amountOfIssues = opponentUtilitySpace.getDomain().getIssues().size();
-		
-		initializeWeight();
+		//initialize bayesian components,including the utility space for each hypothesis of issues and evaluations
+		initializeBayesianComponents();
 	}
 	
-	private void initializeWeight() {
-		// TODO Auto-generated method stub
+	private void initializeBayesianComponents() {
 		this.weights = new double[amountOfIssues+1];
 		double aoi = (double)amountOfIssues;
+		//enumerate the hypothesis of weights for issues
 		for(int i = 1 ; i <= amountOfIssues ; i ++)
 		{
 			weights[i] = 2*(i)/(aoi*(aoi+1));
 		}
+		//initialize all data structures for utilitySpaces
 		HashMap<Objective,Evaluator> hypos = new HashMap<Objective,Evaluator>();
 		piw = new ArrayList<HashMap<UtilitySpace,Double>>();
 		pie = new ArrayList<HashMap<UtilitySpace,Double>>();
@@ -76,13 +78,19 @@ public class Group3_OM extends OpponentModel {
 		
 		Set<Entry<Objective, Evaluator>>opspace = opponentUtilitySpace.getEvaluators();
 		try {
+			/*
+			 * 	Construct the initial probability for each issue and evaluation,
+			 *	Because here we implement scalable algorithm, so we store and learn pw and pe separately.
+			 */
 			constructHypoIssue(1,opspace,hypos);
 			constructHypoEvaluator(opspace);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-//		List<BidDetails> os = negotiationSession.getOutcomeSpace().getAllOutcomes();
+		/*
+		 * During constructing pw, each time we find an issue, we put it into the Arraylist hypow,
+		 * and then here we initialize all P(hijw) for all issues under all hypothesis
+		 */
 		int size = hypow.size();
 		for(int j = 1 ; j <= amountOfIssues ;j++)
 		{	
@@ -96,7 +104,7 @@ public class Group3_OM extends OpponentModel {
 	}
 
 	private void constructHypoEvaluator(Set<Entry<Objective, Evaluator>> opspace) throws Exception {
-		// TODO Auto-generated method stub
+		//For each issue of outcomespace, we iterate all possible values and initialize probabilities.
 		for(Entry<Objective, Evaluator> entry : opspace)
 		{
 			IssueDiscrete id = ((IssueDiscrete)entry.getKey());
@@ -108,7 +116,9 @@ public class Group3_OM extends OpponentModel {
 			for(ValueDiscrete vd : id.getValues())
 			{	
 				UtilitySpace newspace = new UtilitySpace(negotiationSession.getDomain());
+				//Assume vd is the top in the shape of evaluator function
 				eva.setEvaluation(vd,100);
+				//Then the values for all other xi can be calculated with assumption in paper
 				for(ValueDiscrete vd1 : id.getValues())
 				{
 					if(vd1==vd)
@@ -118,15 +128,25 @@ public class Group3_OM extends OpponentModel {
 					else
 						eva.setEvaluation(vd1, (id.getValueIndex(vd1)-num)*100/(id.getValueIndex(vd)-num));
 				}
+				//For each value of a certain issue, the initial possibility is uniformly distributed
 				newspace.addEvaluator(id, eva);
 				tempmap.put(newspace, 1.0/(double)num);
 			}
+			//When finishing construction for an issue, set Hashmap to the correspondent position in Arraylist
 			pie.set(issuenum, tempmap);
 		}
 	}
 
+	/*
+	 * Call this method recursively to construct hypothesis for possible weights for issues.
+	 * Basic idea is confirm a rank firstly, then assign the weight of this rank to every issue, then call next rank.
+	 */
 	private void constructHypoIssue(int rank,Set<Entry<Objective, Evaluator>>opspace,HashMap<Objective,Evaluator> hypos) throws Exception {
 		if(rank>amountOfIssues){
+			/*
+			 * finish constructing one hypothesis of issue weights, which are store in hypos.
+			 * Push it into Arraylist for further constructing the probability sets.
+			 */
 			UtilitySpace newspace = new UtilitySpace(negotiationSession.getDomain());
 			for(Entry<Objective, Evaluator> entry : hypos.entrySet()){
 				newspace.addEvaluator(entry.getKey(), entry.getValue());
@@ -135,6 +155,7 @@ public class Group3_OM extends OpponentModel {
 			hypow.add(newspace);
 			return ;
 		}
+		//set weights of this rank to issues, store the weight and issue in Hashmap, then go into next rank level.
 		for(Entry<Objective, Evaluator> entry : opspace)
 		{
 			if(hypos.containsKey(entry.getKey())) continue;
@@ -158,6 +179,10 @@ public class Group3_OM extends OpponentModel {
 	public void updateModel(Bid opponentBid, double time) {		
 		try{
 			double sum = 0.0;
+			/*
+			 * Calculate current expected hw and he for every issue with given opponentBid.
+			 * Then calculate u(bt) for opponentBid by multiply he and hw for every issue.
+			 */
 			for(int k = 1 ; k <= amountOfIssues ; k ++){
 				ExpEUtility[k] = 0.0;
 				ExpWUtility[k] = 0.0;
@@ -174,34 +199,39 @@ public class Group3_OM extends OpponentModel {
 					Double val = (double)temp.getValue();
 					ExpWUtility[k] += val*hh.getWeight(k);
 				}
+				//Implement u(bt) += hiw*hie(bt)
 				sum += ExpWUtility[k]*ExpEUtility[k];
 			}
 			for(int k = 1 ; k <= amountOfIssues ; k ++){
 				double sume = 0.0;
 				double sumw = 0.0;
-				//calculate  p(he|bt)
+				//Iterate all hypothesis for issue weights and calculate p(he|bt)
 				HashMap<UtilitySpace,Double> curpe = pie.get(k);
 				for(Entry<UtilitySpace,Double> temp : curpe.entrySet()){
 					UtilitySpace hh = (UtilitySpace)temp.getKey();
 					Double val = (double)temp.getValue();
+					//calculating p(bt) by adding p(bt|hkje)
 					sume += val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*hh.getEvaluation(k, opponentBid));
 				}
 				for(Entry<UtilitySpace,Double> temp : curpe.entrySet()){
 					UtilitySpace hh = (UtilitySpace)temp.getKey();
 					Double val = (double)temp.getValue();
+					//update p(hkje|bt)
 					val = val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*hh.getEvaluation(k, opponentBid))/sume;
 					curpe.put(hh,val);
 				}
-				//calculate p(hw|bt)
+				//Iterate all hypothesis for issue weights and calculate p(hw|bt)
 				HashMap<UtilitySpace,Double> curpw = piw.get(k);
 				for(Entry<UtilitySpace,Double> temp : curpw.entrySet()){
 					UtilitySpace hh = (UtilitySpace)temp.getKey();
 					Double val = (double)temp.getValue();
+					//calculating p(bt) by adding p(bt|hkjw)
 					sumw += val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*val*hh.getWeight(k));
 				}
 				for(Entry<UtilitySpace,Double> temp : curpw.entrySet()){
 					UtilitySpace hh = (UtilitySpace)temp.getKey();
 					Double val = (double)temp.getValue();
+					//update p(hkjw|bt)
 					val = val*condiProb((sum-ExpEUtility[k]*ExpWUtility[k])+ExpWUtility[k]*val*hh.getWeight(k))/sumw;
 					curpw.put(hh,val);
 				}
@@ -246,6 +276,7 @@ public class Group3_OM extends OpponentModel {
 					Double val = (double)temp.getValue();
 					uW += val*hh.getWeight(k);
 				}
+				//calculate u(bt)
 				result += uE*uW;
 			}
 			

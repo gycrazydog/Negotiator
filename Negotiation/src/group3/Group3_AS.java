@@ -7,29 +7,23 @@ import negotiator.boaframework.NegotiationSession;
 import negotiator.boaframework.OfferingStrategy;
 
 /**
- * This Acceptance Condition will accept an opponent bid if the utility is higher than the 
- * bid the agent is ready to present
+ * Adapt mixed strategies, choose acceptance strategy by looking at the time remains.
+ * Three classic AC conditions are implemented here, including ACnext,ACtime and ACconst
  * 
- * Decoupling Negotiating Agents to Explore the Space of Negotiation Strategies
- * T. Baarslag, K. Hindriks, M. Hendrikx, A. Dirkzwager, C.M. Jonker
+ * TeamWork: Canran Gou and Shijie Li
  * 
- * @author Alex Dirkzwager, Mark Hendrikx
- * @version 18/12/11
+ * @author Shijie Li
  */
 public class Group3_AS extends AcceptanceStrategy {
 	
 	private double a;
 	private double b;
     private double time;
-	private double lambda = .0,lU; // Acceptance treshold of agent at time t
-	private double ACnextT = 0.9;
-	private double ACtimeU = 0.8;
-	private double ACconsta = 0.6;
-	//
-	/**
-	 *
-         * 
-	 */
+	private double lambda = .0,lU;//Variables for calculating reserved utility during ACtime 
+	private double ACnextT = 0.9;//Deadline for ACnext strategy
+	private double ACtimeU = 0.8;//reserve utility during ACtime
+	private double ACconsta = 0.6;//reserve utility in the end of session
+	private double greatBidUtil = 0.95;
 	public Group3_AS() { }
 	
 	public Group3_AS(NegotiationSession negoSession, OfferingStrategy strat, double alpha, double beta){
@@ -61,10 +55,15 @@ public class Group3_AS extends AcceptanceStrategy {
 
 	@Override
 	public Actions determineAcceptability() {
+		//Get next bid
 		double nextMyBidUtil = offeringStrategy.getNextBid().getMyUndiscountedUtil();
+		//Get last opponent bid
 		double lastOpponentBidUtil = negotiationSession.getOpponentBidHistory().getLastBidDetails().getMyUndiscountedUtil();
 		time = negotiationSession.getTime();
-		//System.out.println("time  "+time);
+		//If opponent propose a bid with really high utility,which in most cases more than 0.95,accept it.
+		if(lastOpponentBidUtil > greatBidUtil)
+			return Actions.Accept;
+		//When it's early in session, implement ACnext,if last opponent bid is not better than next own bid, reject it.
 		if(time<ACnextT){
 			if(lastOpponentBidUtil> nextMyBidUtil){
 				return Actions.Accept;
@@ -73,9 +72,14 @@ public class Group3_AS extends AcceptanceStrategy {
 				return Actions.Reject;
 		}
 		else{
+			//Calculating average bidding time for a round(me and opponent),and check if it's possible to make another round.
 			double totalsessions = (double)negotiationSession.getOpponentBidHistory().size()+(double)negotiationSession.getOwnBidHistory().size();
 			double avgtime;
 			avgtime = time/totalsessions;
+			/*
+			 * If rest time is less than the average time, it seems impossible to do another round, which is dangerous.
+			 * In case in the end of session agents take more take to calculate, I relaxed the deadline for ACtime a little bit.
+			 */
 			if(1-time<avgtime*10)
 			{
 				if(lastOpponentBidUtil>ACconsta)
@@ -83,10 +87,15 @@ public class Group3_AS extends AcceptanceStrategy {
 				else
 				return Actions.Reject;
 			}
+			/*
+			 * If it's still possible to make a bit, calculate the alpha for ACconst by taking time into account.
+			 * When it's getting later, the lU(lowUtility) will decrease more sharply.
+			 */
 			else
 			{
 				setLambda(avgtime);
 				lU = getlU(time);
+				//opponent bid is better than alpha of ACconst
 				if(lastOpponentBidUtil>lU)
 				return Actions.Accept;
 				else
@@ -94,7 +103,8 @@ public class Group3_AS extends AcceptanceStrategy {
 			}
 		}
 	}
-        
+    
+	//Regression function for ACconst with time.
     private double getlU(double time) {
 		return 2-Math.pow(Math.E, lambda*(time-ACnextT));
 	}

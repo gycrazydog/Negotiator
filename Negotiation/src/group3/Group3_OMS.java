@@ -3,6 +3,7 @@ package group3;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+
 import negotiator.bidding.BidDetails;
 import negotiator.boaframework.NegotiationSession;
 import negotiator.boaframework.OMStrategy;

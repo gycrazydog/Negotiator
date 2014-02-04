@@ -106,7 +106,8 @@ public class Group3_BS extends OfferingStrategy {
 	public BidDetails determineNextBid() {
 		double time = negotiationSession.getTime();
 		double utilityGoal;
-		utilityGoal = p(time);
+		utilityGoal = Pmax-(Pmax-0.7)*time;
+		System.out.println(Pmax+" "+time);
 		
 //		System.out.println("[e=" + e + ", Pmin = " + BilateralAgent.round2(Pmin) + "] t = " + BilateralAgent.round2(time) + ". Aiming for " + utilityGoal);
 		
@@ -114,7 +115,15 @@ public class Group3_BS extends OfferingStrategy {
 		if (opponentModel instanceof NoModel) {
 			nextBid = negotiationSession.getOutcomeSpace().getBidNearUtility(utilityGoal);
 		} else {
-			nextBid = omStrategy.getBid(outcomespace, utilityGoal);
+			nextBid = omStrategy.getBid(outcomespace.getAllOutcomes());
+			try {
+				double res = negotiationSession.getUtilitySpace().getUtility(nextBid.getBid());
+				if(res<utilityGoal)
+					nextBid = omStrategy.getBid(outcomespace,utilityGoal);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return nextBid;
 	}

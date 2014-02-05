@@ -58,7 +58,8 @@ public class Group3_BS extends OfferingStrategy {
 
 	@Override
 	public BidDetails determineOpeningBid() {
-		return determineNextBid();
+		//first bid, show our best bid
+		return outcomespace.getMaxBidPossible();
 	}
 
 	//
@@ -67,10 +68,6 @@ public class Group3_BS extends OfferingStrategy {
 		double time = negotiationSession.getTime();
 		BidDetails lastOpponentBid = negotiationSession.getOpponentBidHistory().getLastBidDetails();
 		double utilityGoal;
-
-			//first bid, show our best bid
-			if( negotiationSession.getOpponentBidHistory().size() == 0)
-				return outcomespace.getMaxBidPossible();
 			//try to find a tradeoff bid for current opponent bid, which is at least better than tradeoffUtility
 			try{
 				double bestUtil = tradeoffU;
@@ -94,6 +91,7 @@ public class Group3_BS extends OfferingStrategy {
 					{
 						bestUtil = curUtility;
 						bestBid = bd;
+						System.out.println("bestUtil "+bestUtil);
 					}
 				}
 				if(bestBid != null)
@@ -104,7 +102,6 @@ public class Group3_BS extends OfferingStrategy {
 			}
 			//if fails to find a good tradeoff, just set a goalUtility,which concede with time and try to find nearest bid to it
 			utilityGoal = Pmax-(Pmax-reserveU)*time;
-			
 			//adapt opponentModel to find the best bid for opponent
 			if (opponentModel instanceof NoModel) {
 				nextBid = negotiationSession.getOutcomeSpace().getBidNearUtility(utilityGoal);

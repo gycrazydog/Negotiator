@@ -37,7 +37,6 @@ public class Group3_AS extends AcceptanceStrategy {
 	public void init(NegotiationSession negoSession, OfferingStrategy strat, HashMap<String, Double> parameters) throws Exception {
 		this.negotiationSession = negoSession;
 		this.offeringStrategy = strat;
-
 		if (parameters.get("a") != null || parameters.get("b") != null) {
 			a = parameters.get("a");
 			b = parameters.get("b");
@@ -61,11 +60,11 @@ public class Group3_AS extends AcceptanceStrategy {
 		double lastOpponentBidUtil = negotiationSession.getOpponentBidHistory().getLastBidDetails().getMyUndiscountedUtil();
 		time = negotiationSession.getTime();
 		//If opponent propose a bid with really high utility,which in most cases more than 0.95,accept it.
-		if(lastOpponentBidUtil > greatBidUtil)
+		if(a*lastOpponentBidUtil+b > greatBidUtil)
 			return Actions.Accept;
 		//When it's early in session, implement ACnext,if last opponent bid is not better than next own bid, reject it.
 		if(time<ACnextT){
-			if(lastOpponentBidUtil> nextMyBidUtil){
+			if(a*lastOpponentBidUtil+b> nextMyBidUtil){
 				return Actions.Accept;
 			}
 			else
@@ -80,7 +79,7 @@ public class Group3_AS extends AcceptanceStrategy {
 			 * If rest time is less than the average time, it seems impossible to do another round, which is dangerous.
 			 * In case in the end of session agents take more take to calculate, I relaxed the deadline for ACtime a little bit.
 			 */
-			if(1-time<avgtime*10)
+			if(1-time<avgtime*3)
 			{
 				if(lastOpponentBidUtil>ACconsta)
 				return Actions.Accept;

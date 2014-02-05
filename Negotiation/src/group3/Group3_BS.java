@@ -91,7 +91,6 @@ public class Group3_BS extends OfferingStrategy {
 					{
 						bestUtil = curUtility;
 						bestBid = bd;
-						System.out.println("bestUtil "+bestUtil);
 					}
 				}
 				if(bestBid != null)

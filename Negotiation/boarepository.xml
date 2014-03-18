@@ -55,7 +55,7 @@
 		<omstrategy description="Group3_OMS" classPath="group3.Group3_OMS">
 			<parameter name="t" default="1.0" description="Time after which the OM should not be updated"/>	
 		</omstrategy>
-		<omstrategy description="Best bid" classPath="negotiator.boaframework.omstrategy.BestBid">
+		<omstrategy description="Best bid123" classPath="negotiator.boaframework.omstrategy.BestBid">
 			<parameter name="t" default="1.0" description="Time after which the OM should not be updated"/>	
 		</omstrategy>
 	</omstrategies>
